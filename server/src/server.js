@@ -55,11 +55,20 @@ app.use((req, res) => {
 // Global error handler
 app.use(errorHandler);
 
-// Bootstrap server
-async function startServer() {
-  try {
+let isInitialized = false;
+
+export async function initApp() {
+  if (!isInitialized) {
     await connectDB();
     await seedInitialData();
+    isInitialized = true;
+  }
+}
+
+// Bootstrap server (only when running as standalone process, not in Vercel serverless)
+async function startServer() {
+  try {
+    await initApp();
 
     app.listen(PORT, () => {
       console.log(`\n=================================================`);
@@ -68,11 +77,13 @@ async function startServer() {
       console.log(`=================================================\n`);
     });
   } catch (error) {
-    console.error("Failed to start LeaveFlow API server:", error);
+    console.error("Failed to start LeaveSphere API server:", error);
     process.exit(1);
   }
 }
 
-startServer();
+if (!process.env.VERCEL) {
+  startServer();
+}
 
 export default app;

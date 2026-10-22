@@ -1,8 +1,8 @@
 {
-  "name": "leaveflow-monorepo",
+  "name": "leavesphere-monorepo",
   "version": "1.0.0",
   "private": true,
-  "description": "LeaveFlow - Modern Leave Management System",
+  "description": "LeaveSphere - Modern Leave Management System",
   "type": "module",
   "scripts": {
     "dev": "node dev.js",
@@ -10,6 +10,15 @@
     "seed": "node server/src/scripts/seed.js",
     "test:api": "node server/src/scripts/test-api.js",
     "test:conditions": "node server/src/scripts/verify-all-conditions.js",
-    "build": "cd client && npm run build"
+    "build": "cd client && npm install && npm run build"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.8.1",
+    "morgan": "^1.10.0"
   }
 }
