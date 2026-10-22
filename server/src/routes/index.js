@@ -12,5 +12,12 @@ apiRouter.use("/leave", leaveRoutes);
 apiRouter.use("/admin", adminRoutes);
 apiRouter.use("/company-holidays", holidayRoutes);
 apiRouter.use("/notifications", notificationRoutes);
+apiRouter.get("/health", (req, res) => {
+  res.json({
+    status: "ok",
+    service: "LeaveSphere REST API",
+    timestamp: new Date().toISOString()
+  });
+});
 
 export default apiRouter;
