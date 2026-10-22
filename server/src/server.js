@@ -16,15 +16,15 @@ import { errorHandler } from "./middleware/errorHandler.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
-const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:5173";
 
-// Middleware
+// Middleware - allow requesting origins (Vercel deployments, custom domains, local development)
 app.use(cors({
-  origin: [CLIENT_ORIGIN, "http://localhost:5173", "http://127.0.0.1:5173"],
+  origin: true,
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
+app.options("*", cors());
 
 app.use(express.json());
 app.use(morgan("dev"));
@@ -63,9 +63,8 @@ async function startServer() {
 
     app.listen(PORT, () => {
       console.log(`\n=================================================`);
-      console.log(`  LeaveFlow API server running on port ${PORT}`);
+      console.log(`  LeaveSphere API server running on port ${PORT}`);
       console.log(`  Base URL: http://localhost:${PORT}/api/v1`);
-      console.log(`  Ready for client connections from ${CLIENT_ORIGIN}`);
       console.log(`=================================================\n`);
     });
   } catch (error) {
