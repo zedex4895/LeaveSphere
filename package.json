@@ -1,0 +1,15 @@
+{
+  "name": "leaveflow-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "LeaveFlow - Modern Leave Management System",
+  "type": "module",
+  "scripts": {
+    "dev": "node dev.js",
+    "start": "node server/src/server.js",
+    "seed": "node server/src/scripts/seed.js",
+    "test:api": "node server/src/scripts/test-api.js",
+    "test:conditions": "node server/src/scripts/verify-all-conditions.js",
+    "build": "cd client && npm run build"
+  }
+}
