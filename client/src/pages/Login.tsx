@@ -58,7 +58,7 @@ export const Login: React.FC = () => {
           position: "relative"
         }}
       >
-        {/* ================= LEFT SIDE (DARK HERO WITH PHONE) ================= */}
+        {/*LEFT SIDE (DARK HERO WITH PHONE)  */}
         <div
           style={{
             flex: "1 1 520px",
@@ -457,7 +457,7 @@ export const Login: React.FC = () => {
               gap: "12px"
             }}
           >
-            <span>© 2005-2026 LeaveSphere Inc.</span>
+            <span>© 2026 LeaveSphere Inc.</span>
             <div style={{ display: "flex", alignItems: "center", gap: "18px" }}>
               <a
                 href="#contact"
