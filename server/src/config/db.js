@@ -4,65 +4,39 @@ let isConnected = false;
 let connectionPromise = null;
 
 /**
- * Sanitize a MongoDB Atlas URI so that a password containing "@" is handled
- * correctly. We ONLY URL-encode the password component; the rest of the URI
- * is left untouched.
- *
- * Strategy: find the authority section (between "://" and the first "/" after
- * the host) and split on the LAST "@" to separate credentials from host.
- * This correctly handles passwords such as "gerukatte@123".
+ * Ensure the URI has a database name and query options appended.
+ * We do NOT re-encode the password here — the URI in the environment variable
+ * must already have any special characters percent-encoded (e.g. "@" → "%40").
+ * This avoids double-encoding or mis-parsing passwords that contain "@".
  */
 export function sanitizeMongoUri(rawUri) {
   if (!rawUri) return rawUri;
   try {
-    // Match:  scheme "://" userinfo "@" host+rest
-    // We look for the LAST "@" before the first "/" that follows the host.
-    const schemeEnd = rawUri.indexOf("://");
-    if (schemeEnd === -1) return rawUri;
-
-    const scheme = rawUri.slice(0, schemeEnd); // "mongodb+srv" or "mongodb"
-    const afterScheme = rawUri.slice(schemeEnd + 3); // "user:pass@host/db?opts"
-
-    // Find the last "@" that is part of the authority (before the path "/")
-    const pathStart = afterScheme.indexOf("/");
-    const authority = pathStart === -1 ? afterScheme : afterScheme.slice(0, pathStart);
-    const path = pathStart === -1 ? "" : afterScheme.slice(pathStart);
-
-    const lastAt = authority.lastIndexOf("@");
-    if (lastAt === -1) {
-      // No credentials in URI — return as-is
-      return rawUri;
+    // If the URI ends with just "/" or has no database name, append defaults
+    const url = new URL(rawUri);
+    if (!url.pathname || url.pathname === "/") {
+      url.pathname = "/leave_management";
+      if (!url.searchParams.has("retryWrites")) url.searchParams.set("retryWrites", "true");
+      if (!url.searchParams.has("w")) url.searchParams.set("w", "majority");
     }
-
-    const credentials = authority.slice(0, lastAt);       // "user:pass@...pass"
-    const hostPart = authority.slice(lastAt + 1);         // "cluster0.xxx.mongodb.net"
-
-    // Split credentials on the FIRST ":" to separate username from password
-    const colonIdx = credentials.indexOf(":");
-    if (colonIdx === -1) return rawUri;
-
-    const user = credentials.slice(0, colonIdx);
-    const pass = credentials.slice(colonIdx + 1);
-
-    // Only encode if the password is not already percent-encoded
-    const encodedPass = encodeURIComponent(decodeURIComponent(pass));
-    const encodedUser = encodeURIComponent(decodeURIComponent(user));
-
-    // Reconstruct URI, appending default DB/options if path is bare "/"
-    let resolvedPath = path;
-    if (!resolvedPath || resolvedPath === "/") {
-      resolvedPath = "/leave_management?retryWrites=true&w=majority";
-    }
-
-    return `${scheme}://${encodedUser}:${encodedPass}@${hostPart}${resolvedPath}`;
+    return url.toString();
   } catch (e) {
-    console.warn("[DB] sanitizeMongoUri error:", e.message);
+    // URL constructor cannot parse mongodb+srv in all Node versions — fall back
+    // to a simple string-based approach
+    if (rawUri.endsWith("/")) {
+      return `${rawUri}leave_management?retryWrites=true&w=majority`;
+    }
+    // No trailing slash but also no path — append
+    const hasPath = rawUri.split("://")[1]?.includes("/");
+    if (!hasPath) {
+      return `${rawUri}/leave_management?retryWrites=true&w=majority`;
+    }
     return rawUri;
   }
 }
 
 export async function connectDB() {
-  const isProduction = process.env.NODE_ENV === "production" || process.env.VERCEL;
+  const isProduction = !!(process.env.VERCEL || process.env.NODE_ENV === "production");
   const rawUri = process.env.MONGODB_URI;
 
   if (!rawUri) {
@@ -72,13 +46,12 @@ export async function connectDB() {
         "Set it in your Vercel project environment variables."
       );
     }
-    // Local dev convenience: fall back to localhost
-    console.warn("[DB] MONGODB_URI not set — using localhost fallback for local development.");
+    console.warn("[DB] MONGODB_URI not set — using localhost fallback for local development only.");
   }
 
   const uri = sanitizeMongoUri(rawUri || "mongodb://localhost:27017/leave_management");
 
-  // Mask password in logs — never print the real credentials
+  // Mask credentials in all log output — never print the real password
   const maskedUri = uri.replace(/\/\/([^:]+):([^@]+)@/, "//$1:****@");
   console.log(`[DB] Connecting to MongoDB: ${maskedUri}`);
 
@@ -86,17 +59,15 @@ export async function connectDB() {
     await mongoose.connect(uri, {
       serverSelectionTimeoutMS: 10000,
       socketTimeoutMS: 45000,
-      // Vercel serverless: do not buffer connections indefinitely
       bufferCommands: false,
     });
     isConnected = true;
     console.log("[DB] MongoDB connected successfully.");
   } catch (error) {
     isConnected = false;
-    const safeMsg = error.message.replace(uri, maskedUri); // scrub URI from error
+    // Scrub the real URI from the error message before logging
+    const safeMsg = error.message.replace(uri, maskedUri);
     if (isProduction) {
-      // In production, do NOT silently fall back — let it crash so Vercel logs
-      // show the real problem and callers return HTTP 503.
       throw new Error(`[DB] MongoDB connection failed: ${safeMsg}`);
     }
     console.warn(`[DB] Could not connect to MongoDB (${safeMsg}).`);
@@ -105,13 +76,11 @@ export async function connectDB() {
 }
 
 /**
- * Reuse existing connections across Vercel serverless invocations.
- * Calling this multiple times is safe — it resolves immediately if already
- * connected.
+ * Reuse existing connections across Vercel serverless warm invocations.
+ * Safe to call multiple times — resolves immediately when already connected.
  */
 export async function ensureConnected() {
   if (isConnected && mongoose.connection.readyState === 1) return;
-
   if (!connectionPromise) {
     connectionPromise = connectDB().finally(() => {
       connectionPromise = null;
