@@ -9,7 +9,8 @@ dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
-import { connectDB, isMongoConnected } from "./config/db.js";
+import { ensureConnected, isMongoConnected } from "./config/db.js";
+import { corsOptions } from "./config/cors.js";
 import { seedInitialData } from "./services/dataService.js";
 import apiRoutes from "./routes/index.js";
 import { errorHandler } from "./middleware/errorHandler.js";
@@ -17,7 +18,31 @@ import { errorHandler } from "./middleware/errorHandler.js";
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// Middleware - support Chrome Private Network Access (PNA) for public-to-localhost requests
+let isInitialized = false;
+let initPromise = null;
+
+export async function initApp() {
+  if (isInitialized) return;
+  if (!initPromise) {
+    initPromise = (async () => {
+      await ensureConnected();
+      if (!isMongoConnected() && (process.env.VERCEL || process.env.NODE_ENV === "production")) {
+        throw new Error("MongoDB is not connected in production.");
+      }
+      await seedInitialData();
+      isInitialized = true;
+      console.log("[App] Initialization complete.");
+    })().catch((err) => {
+      initPromise = null;
+      console.error("[App] Initialization failed:", err.message);
+      throw err;
+    });
+  }
+  await initPromise;
+}
+
+app.use(cors(corsOptions));
+
 app.use((req, res, next) => {
   if (req.headers["access-control-request-private-network"]) {
     res.setHeader("Access-Control-Allow-Private-Network", "true");
@@ -25,29 +50,24 @@ app.use((req, res, next) => {
   next();
 });
 
-// Middleware - allow requesting origins (Vercel deployments, custom domains, local development)
-app.use(cors({
-  origin: true,
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "Access-Control-Request-Private-Network"]
-}));
-
-app.options("*", (req, res) => {
-  if (req.headers["access-control-request-private-network"]) {
-    res.setHeader("Access-Control-Allow-Private-Network", "true");
-  }
-  res.setHeader("Access-Control-Allow-Origin", req.headers.origin || "*");
-  res.setHeader("Access-Control-Allow-Credentials", "true");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, Access-Control-Request-Private-Network");
-  res.sendStatus(204);
-});
-
 app.use(express.json());
 app.use(morgan("dev"));
 
-// Top-level health endpoint — reports real DB connectivity
+app.use(async (req, res, next) => {
+  if (req.method === "OPTIONS") {
+    next();
+    return;
+  }
+  try {
+    await initApp();
+    next();
+  } catch (err) {
+    err.status = err.status || 503;
+    err.code = err.code || "SERVICE_UNAVAILABLE";
+    next(err);
+  }
+});
+
 app.get("/health", (req, res) => {
   const dbConnected = isMongoConnected();
   res.status(dbConnected ? 200 : 503).json({
@@ -58,10 +78,8 @@ app.get("/health", (req, res) => {
   });
 });
 
-// Mount V1 API
 app.use("/api/v1", apiRoutes);
 
-// 404 for undefined routes
 app.use((req, res) => {
   res.status(404).json({
     error: {
@@ -72,29 +90,8 @@ app.use((req, res) => {
   });
 });
 
-// Global error handler
 app.use(errorHandler);
 
-let isInitialized = false;
-let initError = null;
-
-export async function initApp() {
-  if (isInitialized) return;
-  if (initError) throw initError;
-
-  try {
-    await connectDB();
-    await seedInitialData();
-    isInitialized = true;
-    console.log("[App] Initialization complete.");
-  } catch (err) {
-    initError = err;
-    console.error("[App] Initialization failed:", err.message);
-    throw err;
-  }
-}
-
-// Bootstrap server (only when running as standalone process, not in Vercel serverless)
 async function startServer() {
   try {
     await initApp();

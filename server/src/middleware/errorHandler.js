@@ -1,4 +1,7 @@
+import { applyCorsHeaders } from "../config/cors.js";
+
 export function errorHandler(err, req, res, next) {
+  applyCorsHeaders(req, res);
   console.error(`[Error] ${req.method} ${req.originalUrl}:`, err);
 
   const statusCode = err.status || err.statusCode || 500;

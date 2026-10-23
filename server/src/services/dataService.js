@@ -501,6 +501,9 @@ export async function seedInitialData() {
       console.log("[Seed] MongoDB Atlas database successfully initialized with demo records.");
     } catch (err) {
       console.error("[Seed] Error synchronizing seed to MongoDB:", err.message);
+      if (isProduction) {
+        throw err;
+      }
     }
   }
 }
@@ -975,11 +978,14 @@ export const dataService = {
 
     if (isMongoConnected()) {
       try {
-        const created = await Notification.create(entry);
-        return created;
+        return await Notification.create(entry);
       } catch (err) {
         console.error("Create notification MongoDB error:", err.message);
+        if (isProduction) throw err;
       }
+    }
+    if (isProduction) {
+      requireMongo("createNotification");
     }
     memoryStore.notifications.unshift(entry);
     return entry;
@@ -1055,6 +1061,7 @@ export const dataService = {
   },
 
   async markNotificationAsRead(id, userId) {
+    requireMongo("markNotificationAsRead");
     if (isMongoConnected()) {
       await Notification.updateOne({ _id: new mongoose.Types.ObjectId(id) }, { $set: { isRead: true } });
       return true;
@@ -1065,6 +1072,7 @@ export const dataService = {
   },
 
   async markAllNotificationsAsRead(userId, role) {
+    requireMongo("markAllNotificationsAsRead");
     if (isMongoConnected()) {
       const uId = userId ? new mongoose.Types.ObjectId(userId) : null;
       let query;
