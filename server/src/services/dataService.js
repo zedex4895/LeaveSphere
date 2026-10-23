@@ -8,7 +8,28 @@ import CompanyHoliday from "../models/CompanyHoliday.js";
 import AuditLog from "../models/AuditLog.js";
 import Notification from "../models/Notification.js";
 
-// In-memory data store for fallback when MongoDB Atlas / local mongod is not running
+// True when running on Vercel or NODE_ENV=production
+const isProduction = !!(process.env.VERCEL || process.env.NODE_ENV === "production");
+
+/**
+ * Throw a 503 Service Unavailable error when production code would fall back
+ * to the in-memory store.  This makes the failure visible (logs + HTTP 503)
+ * instead of silently returning data that will disappear on the next
+ * serverless invocation.
+ */
+function requireMongo(operationName) {
+  if (isProduction && !isMongoConnected()) {
+    const err = new Error(
+      `[DB] MongoDB is not connected. Cannot perform '${operationName}' in production. ` +
+      "Ensure MONGODB_URI is set correctly in Vercel environment variables."
+    );
+    err.status = 503;
+    err.code = "SERVICE_UNAVAILABLE";
+    throw err;
+  }
+}
+
+// In-memory data store — used ONLY for local development when MONGODB_URI is not set
 const memoryStore = {
   users: [],
   leaveBalances: [],
@@ -488,6 +509,7 @@ export async function seedInitialData() {
 export const dataService = {
   // Users
   async findUserByEmail(email, includePassword = false) {
+    requireMongo("findUserByEmail");
     const normalized = email.trim().toLowerCase();
     if (isMongoConnected()) {
       const query = User.findOne({ email: normalized });
@@ -502,6 +524,7 @@ export const dataService = {
   },
 
   async findUserById(id, includePassword = false) {
+    requireMongo("findUserById");
     const idStr = id.toString();
     if (isMongoConnected()) {
       const query = User.findById(id);
@@ -516,6 +539,7 @@ export const dataService = {
   },
 
   async listEmployees() {
+    requireMongo("listEmployees");
     if (isMongoConnected()) {
       return await User.find({ role: "EMPLOYEE", isActive: true }).select("-passwordHash").lean();
     }
@@ -530,6 +554,7 @@ export const dataService = {
 
   // Leave Balances
   async getEmployeeBalances(employeeId) {
+    requireMongo("getEmployeeBalances");
     const empIdStr = employeeId.toString();
     if (isMongoConnected()) {
       const balances = await LeaveBalance.find({ employeeId }).lean();
@@ -552,6 +577,7 @@ export const dataService = {
   },
 
   async getBalanceRecord(employeeId, leaveType) {
+    requireMongo("getBalanceRecord");
     const empIdStr = employeeId.toString();
     if (isMongoConnected()) {
       return await LeaveBalance.findOne({ employeeId, leaveType });
@@ -562,6 +588,7 @@ export const dataService = {
   },
 
   async updateBalanceRecord(employeeId, leaveType, updateFields) {
+    requireMongo("updateBalanceRecord");
     const empIdStr = employeeId.toString();
     if (isMongoConnected()) {
       return await LeaveBalance.findOneAndUpdate(
@@ -581,6 +608,7 @@ export const dataService = {
 
   // Leave Requests
   async createLeaveRequest(requestData) {
+    requireMongo("createLeaveRequest");
     if (isMongoConnected()) {
       const doc = new LeaveRequest(requestData);
       return await doc.save();
@@ -598,6 +626,7 @@ export const dataService = {
   },
 
   async getLeaveRequestById(id) {
+    requireMongo("getLeaveRequestById");
     const idStr = id.toString();
     if (isMongoConnected()) {
       return await LeaveRequest.findById(id).populate("employeeId", "fullName email department").populate("reviewerId", "fullName email").lean();
@@ -615,6 +644,7 @@ export const dataService = {
   },
 
   async listLeaveRequests({ employeeId, status, leaveType, from, to, page = 1, limit = 20 }) {
+    requireMongo("listLeaveRequests");
     const filter = {};
     if (employeeId) filter.employeeId = employeeId;
     if (status) filter.status = status;
@@ -690,6 +720,7 @@ export const dataService = {
   },
 
   async checkOverlap(employeeId, startDate, endDate, excludeId = null) {
+    requireMongo("checkOverlap");
     const s = new Date(startDate);
     const e = new Date(endDate);
     const empIdStr = employeeId.toString();
@@ -719,6 +750,7 @@ export const dataService = {
   },
 
   async updateLeaveRequest(id, updateFields) {
+    requireMongo("updateLeaveRequest");
     const idStr = id.toString();
     if (isMongoConnected()) {
       return await LeaveRequest.findByIdAndUpdate(
@@ -746,6 +778,7 @@ export const dataService = {
 
   // Admin Dashboard Metrics
   async getDashboardMetrics() {
+    requireMongo("getDashboardMetrics");
     const now = new Date();
     const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -798,6 +831,7 @@ export const dataService = {
 
   // Company Holidays
   async listCompanyHolidays({ from, to }) {
+    requireMongo("listCompanyHolidays");
     if (isMongoConnected()) {
       const filter = { isPublished: true };
       if (from || to) {
@@ -821,6 +855,7 @@ export const dataService = {
   },
 
   async importCompanyHolidays(holidays, adminId) {
+    requireMongo("importCompanyHolidays");
     let imported = 0;
     let skipped = 0;
     const errors = [];
@@ -886,6 +921,7 @@ export const dataService = {
 
   // Audit Logs
   async createAuditLog({ actorId, action, entityType, entityId, metadata = {} }) {
+    // Audit logs are non-critical — we log the error but do not throw
     const entry = {
       _id: new mongoose.Types.ObjectId(),
       actorId,
@@ -907,6 +943,7 @@ export const dataService = {
   },
 
   async listAuditLogs(limit = 50) {
+    requireMongo("listAuditLogs");
     if (isMongoConnected()) {
       return await AuditLog.find().sort({ createdAt: -1 }).limit(limit).populate("actorId", "fullName email role").lean();
     }
@@ -922,6 +959,7 @@ export const dataService = {
 
   // Notifications
   async createNotification({ recipientId, recipientRole = null, title, message, type = "SYSTEM", relatedEntityId }) {
+    // Notifications are non-critical — failure is logged but does not abort the main operation
     const entry = {
       _id: new mongoose.Types.ObjectId(),
       recipientId: recipientId ? new mongoose.Types.ObjectId(recipientId) : null,
@@ -948,6 +986,7 @@ export const dataService = {
   },
 
   async listNotifications({ userId, role, limit = 50 }) {
+    requireMongo("listNotifications");
     if (isMongoConnected()) {
       const uId = userId ? new mongoose.Types.ObjectId(userId) : null;
       let query;

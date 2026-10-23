@@ -9,7 +9,7 @@ dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
-import { connectDB } from "./config/db.js";
+import { connectDB, isMongoConnected } from "./config/db.js";
 import { seedInitialData } from "./services/dataService.js";
 import apiRoutes from "./routes/index.js";
 import { errorHandler } from "./middleware/errorHandler.js";
@@ -47,11 +47,13 @@ app.options("*", (req, res) => {
 app.use(express.json());
 app.use(morgan("dev"));
 
-// Health endpoint
+// Top-level health endpoint — reports real DB connectivity
 app.get("/health", (req, res) => {
-  res.json({
-    status: "ok",
-    service: "LeaveFlow REST API",
+  const dbConnected = isMongoConnected();
+  res.status(dbConnected ? 200 : 503).json({
+    status: dbConnected ? "ok" : "degraded",
+    service: "LeaveSphere REST API",
+    database: dbConnected ? "connected" : "disconnected",
     timestamp: new Date().toISOString()
   });
 });
@@ -74,12 +76,21 @@ app.use((req, res) => {
 app.use(errorHandler);
 
 let isInitialized = false;
+let initError = null;
 
 export async function initApp() {
-  if (!isInitialized) {
+  if (isInitialized) return;
+  if (initError) throw initError;
+
+  try {
     await connectDB();
     await seedInitialData();
     isInitialized = true;
+    console.log("[App] Initialization complete.");
+  } catch (err) {
+    initError = err;
+    console.error("[App] Initialization failed:", err.message);
+    throw err;
   }
 }
 
@@ -95,7 +106,7 @@ async function startServer() {
       console.log(`=================================================\n`);
     });
   } catch (error) {
-    console.error("Failed to start LeaveSphere API server:", error);
+    console.error("Failed to start LeaveSphere API server:", error.message);
     process.exit(1);
   }
 }

@@ -1,63 +1,123 @@
 import mongoose from "mongoose";
 
 let isConnected = false;
+let connectionPromise = null;
 
+/**
+ * Sanitize a MongoDB Atlas URI so that a password containing "@" is handled
+ * correctly. We ONLY URL-encode the password component; the rest of the URI
+ * is left untouched.
+ *
+ * Strategy: find the authority section (between "://" and the first "/" after
+ * the host) and split on the LAST "@" to separate credentials from host.
+ * This correctly handles passwords such as "gerukatte@123".
+ */
 export function sanitizeMongoUri(rawUri) {
   if (!rawUri) return rawUri;
   try {
-    const atParts = rawUri.split("@");
-    if (atParts.length > 2) {
-      const prefix = atParts[0];
-      const hostPart = atParts[atParts.length - 1];
-      const middleParts = atParts.slice(1, atParts.length - 1);
+    // Match:  scheme "://" userinfo "@" host+rest
+    // We look for the LAST "@" before the first "/" that follows the host.
+    const schemeEnd = rawUri.indexOf("://");
+    if (schemeEnd === -1) return rawUri;
 
-      const protocolAndUserPass = prefix.split("://");
-      const protocol = protocolAndUserPass[0];
-      const userAndFirstPass = protocolAndUserPass[1];
-      const colonIdx = userAndFirstPass.indexOf(":");
-      const user = userAndFirstPass.slice(0, colonIdx);
-      const firstPass = userAndFirstPass.slice(colonIdx + 1);
+    const scheme = rawUri.slice(0, schemeEnd); // "mongodb+srv" or "mongodb"
+    const afterScheme = rawUri.slice(schemeEnd + 3); // "user:pass@host/db?opts"
 
-      const fullPass = [firstPass, ...middleParts].join("@");
-      const encodedPass = encodeURIComponent(fullPass);
+    // Find the last "@" that is part of the authority (before the path "/")
+    const pathStart = afterScheme.indexOf("/");
+    const authority = pathStart === -1 ? afterScheme : afterScheme.slice(0, pathStart);
+    const path = pathStart === -1 ? "" : afterScheme.slice(pathStart);
 
-      let hostWithDb = hostPart;
-      if (!hostWithDb.includes("/")) {
-        hostWithDb = `${hostWithDb}/leave_management?retryWrites=true&w=majority`;
-      } else if (hostWithDb.endsWith("/")) {
-        hostWithDb = `${hostWithDb}leave_management?retryWrites=true&w=majority`;
-      }
-      return `${protocol}://${encodeURIComponent(user)}:${encodedPass}@${hostWithDb}`;
+    const lastAt = authority.lastIndexOf("@");
+    if (lastAt === -1) {
+      // No credentials in URI — return as-is
+      return rawUri;
     }
 
-    if (rawUri.endsWith("/")) {
-      return `${rawUri}leave_management?retryWrites=true&w=majority`;
+    const credentials = authority.slice(0, lastAt);       // "user:pass@...pass"
+    const hostPart = authority.slice(lastAt + 1);         // "cluster0.xxx.mongodb.net"
+
+    // Split credentials on the FIRST ":" to separate username from password
+    const colonIdx = credentials.indexOf(":");
+    if (colonIdx === -1) return rawUri;
+
+    const user = credentials.slice(0, colonIdx);
+    const pass = credentials.slice(colonIdx + 1);
+
+    // Only encode if the password is not already percent-encoded
+    const encodedPass = encodeURIComponent(decodeURIComponent(pass));
+    const encodedUser = encodeURIComponent(decodeURIComponent(user));
+
+    // Reconstruct URI, appending default DB/options if path is bare "/"
+    let resolvedPath = path;
+    if (!resolvedPath || resolvedPath === "/") {
+      resolvedPath = "/leave_management?retryWrites=true&w=majority";
     }
+
+    return `${scheme}://${encodedUser}:${encodedPass}@${hostPart}${resolvedPath}`;
   } catch (e) {
-    // Fall back to original URI if parsing fails
+    console.warn("[DB] sanitizeMongoUri error:", e.message);
+    return rawUri;
   }
-  return rawUri;
 }
 
 export async function connectDB() {
-  const rawUri = process.env.MONGODB_URI || "mongodb://localhost:27017/leave_management";
-  const uri = sanitizeMongoUri(rawUri);
+  const isProduction = process.env.NODE_ENV === "production" || process.env.VERCEL;
+  const rawUri = process.env.MONGODB_URI;
 
-  // Mask password for console log
-  const maskedUri = uri.replace(/\/\/(.*?):(.*?)@/, "//$1:****@");
+  if (!rawUri) {
+    if (isProduction) {
+      throw new Error(
+        "[DB] MONGODB_URI environment variable is required in production. " +
+        "Set it in your Vercel project environment variables."
+      );
+    }
+    // Local dev convenience: fall back to localhost
+    console.warn("[DB] MONGODB_URI not set — using localhost fallback for local development.");
+  }
+
+  const uri = sanitizeMongoUri(rawUri || "mongodb://localhost:27017/leave_management");
+
+  // Mask password in logs — never print the real credentials
+  const maskedUri = uri.replace(/\/\/([^:]+):([^@]+)@/, "//$1:****@");
+  console.log(`[DB] Connecting to MongoDB: ${maskedUri}`);
 
   try {
-    console.log(`[DB] Connecting to MongoDB Atlas: ${maskedUri}`);
     await mongoose.connect(uri, {
-      serverSelectionTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 10000,
+      socketTimeoutMS: 45000,
+      // Vercel serverless: do not buffer connections indefinitely
+      bufferCommands: false,
     });
     isConnected = true;
-    console.log("[DB] MongoDB Atlas connected successfully via Mongoose.");
+    console.log("[DB] MongoDB connected successfully.");
   } catch (error) {
     isConnected = false;
-    console.warn(`[DB] Notice: Could not connect to MongoDB Atlas (${error.message}).`);
-    console.log("[DB] Activating built-in resilient database engine so LeaveFlow functions completely out-of-the-box.");
+    const safeMsg = error.message.replace(uri, maskedUri); // scrub URI from error
+    if (isProduction) {
+      // In production, do NOT silently fall back — let it crash so Vercel logs
+      // show the real problem and callers return HTTP 503.
+      throw new Error(`[DB] MongoDB connection failed: ${safeMsg}`);
+    }
+    console.warn(`[DB] Could not connect to MongoDB (${safeMsg}).`);
+    console.log("[DB] Running with in-memory store for local development.");
   }
+}
+
+/**
+ * Reuse existing connections across Vercel serverless invocations.
+ * Calling this multiple times is safe — it resolves immediately if already
+ * connected.
+ */
+export async function ensureConnected() {
+  if (isConnected && mongoose.connection.readyState === 1) return;
+
+  if (!connectionPromise) {
+    connectionPromise = connectDB().finally(() => {
+      connectionPromise = null;
+    });
+  }
+  await connectionPromise;
 }
 
 export function isMongoConnected() {
