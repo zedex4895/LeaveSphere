@@ -32,7 +32,7 @@ export const AdminEmployees: React.FC<AdminEmployeesProps> = ({ employees }) => 
         </div>
 
         {/* Search */}
-        <div style={{ position: "relative", minWidth: "260px" }}>
+        <div className="search-field">
           <input
             type="text"
             className="input"
@@ -50,13 +50,7 @@ export const AdminEmployees: React.FC<AdminEmployeesProps> = ({ employees }) => 
       </div>
 
       {/* Employees Grid */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
-          gap: "20px"
-        }}
-      >
+      <div className="card-grid">
         {filtered.map(emp => {
           const annual = emp.balances.find(b => b.leaveType === "ANNUAL");
           const sick = emp.balances.find(b => b.leaveType === "SICK");
@@ -112,7 +106,7 @@ export const AdminEmployees: React.FC<AdminEmployeesProps> = ({ employees }) => 
                 <div style={{ fontSize: "11px", fontWeight: "700", color: "var(--text-light)", textTransform: "uppercase", marginBottom: "8px" }}>
                   Available Balances
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", textAlign: "center" }}>
+                <div className="metric-triple">
                   <div>
                     <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>Annual</span>
                     <div style={{ fontSize: "14px", fontWeight: "700", color: "var(--primary)", marginTop: "2px" }}>

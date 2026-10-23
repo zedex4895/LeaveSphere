@@ -29,14 +29,7 @@ export const EmployeeBalance: React.FC<EmployeeBalanceProps> = ({
       </div>
 
       {/* Grid of Balance Cards */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-          gap: "20px",
-          marginBottom: "32px"
-        }}
-      >
+      <div className="card-grid" style={{ marginBottom: "32px" }}>
         {balances.map(b => {
           const pct = b.entitlement > 0 ? Math.round((b.available / b.entitlement) * 100) : 0;
           const getBarColor = () => {
@@ -94,7 +87,7 @@ export const EmployeeBalance: React.FC<EmployeeBalanceProps> = ({
               </div>
 
               {/* Breakdown metrics */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px", borderTop: "1px solid var(--border)", paddingTop: "16px", textAlign: "center" }}>
+              <div className="metric-triple" style={{ borderTop: "1px solid var(--border)", paddingTop: "16px" }}>
                 <div>
                   <span style={{ fontSize: "11px", color: "var(--text-light)", textTransform: "uppercase" }}>Entitlement</span>
                   <div style={{ fontSize: "15px", fontWeight: "600", color: "var(--text-main)", marginTop: "2px" }}>
@@ -128,7 +121,7 @@ export const EmployeeBalance: React.FC<EmployeeBalanceProps> = ({
           </h3>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "20px" }}>
+        <div className="card-grid">
           <div style={{ padding: "16px", backgroundColor: "var(--surface-subtle)", borderRadius: "10px", border: "1px solid var(--border)" }}>
             <h4 style={{ fontSize: "14px", fontWeight: "600", color: "var(--text-main)", marginBottom: "6px" }}>
               Annual Leave Carry-Forward

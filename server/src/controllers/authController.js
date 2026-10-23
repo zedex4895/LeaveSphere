@@ -1,9 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { dataService } from "../services/dataService.js";
-
-const JWT_SECRET = process.env.JWT_ACCESS_SECRET || "leaveflow_jwt_secret_secure_key_2026_9876543210";
-const JWT_EXPIRES_IN = process.env.JWT_ACCESS_TTL || "7d";
+import { getJwtSecret } from "../config/jwt.js";
 
 export async function login(req, res, next) {
   try {
@@ -57,8 +55,8 @@ export async function login(req, res, next) {
     const userId = user._id ? user._id.toString() : user.id;
     const token = jwt.sign(
       { id: userId, email: user.email, role: user.role },
-      JWT_SECRET,
-      { expiresIn: JWT_EXPIRES_IN }
+      getJwtSecret(),
+      { expiresIn: process.env.JWT_ACCESS_TTL || "7d" }
     );
 
     res.json({

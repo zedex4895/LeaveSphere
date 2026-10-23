@@ -3,6 +3,7 @@ import { api } from "../services/api";
 import { LeaveRequest } from "../types";
 import { StatusBadge } from "./StatusBadge";
 import { X, Calendar, User, Clock, AlertCircle } from "lucide-react";
+import { useEscape } from "../hooks/useEscape";
 
 interface EmployeeHistoryModalProps {
   employeeId: string | null;
@@ -19,6 +20,7 @@ export const EmployeeHistoryModal: React.FC<EmployeeHistoryModalProps> = ({
   const [items, setItems] = useState<LeaveRequest[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  useEscape(isOpen, onClose);
 
   useEffect(() => {
     if (!isOpen || !employeeId) return;

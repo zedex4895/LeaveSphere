@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { api } from "../services/api";
 import { LeaveRequest } from "../types";
 import { X, CheckCircle, XCircle, AlertCircle, User, Calendar, FileText } from "lucide-react";
+import { useEscape } from "../hooks/useEscape";
 
 interface ReviewLeaveModalProps {
   request: LeaveRequest | null;
@@ -19,6 +20,7 @@ export const ReviewLeaveModal: React.FC<ReviewLeaveModalProps> = ({
   const [decisionNote, setDecisionNote] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  useEscape(isOpen, onClose);
 
   if (!isOpen || !request) return null;
 

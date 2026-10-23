@@ -45,14 +45,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       </div>
 
       {/* 4 KPI Metrics */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))",
-          gap: "20px",
-          marginBottom: "28px"
-        }}
-      >
+      <div className="kpi-grid">
         <StatCard
           title="Pending approvals"
           value={metrics.pendingApprovals}
@@ -89,7 +82,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
       {/* Pending Approvals Queue Card */}
       <div className="card" style={{ padding: "26px", marginBottom: "28px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+        <div className="page-header" style={{ marginBottom: "20px" }}>
           <div>
             <h3 style={{ fontSize: "18px", fontWeight: "700", color: "var(--text-main)" }}>
               Pending approvals queue
@@ -127,7 +120,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
         ) : (
           <div className="table-container">
-            <table>
+            <table className="table-stack">
               <thead>
                 <tr>
                   <th>Employee</th>
@@ -141,7 +134,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <tbody>
                 {pendingRequests.map(r => (
                   <tr key={r.id}>
-                    <td>
+                    <td data-label="Employee">
                       <div>
                         <strong style={{ color: "var(--text-main)" }}>{r.employee?.name || "Employee"}</strong>
                         <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>
@@ -149,25 +142,25 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         </div>
                       </div>
                     </td>
-                    <td>
+                    <td data-label="Leave Type">
                       <span style={{ fontSize: "13px", fontWeight: "600", color: "var(--text-main)" }}>
                         {r.leaveType}
                       </span>
                     </td>
-                    <td style={{ fontSize: "13px", whiteSpace: "nowrap" }}>
+                    <td data-label="Dates" style={{ fontSize: "13px" }}>
                       {r.startDate} to {r.endDate}
                     </td>
-                    <td>
+                    <td data-label="Duration">
                       <span style={{ fontWeight: "700", color: "var(--primary)" }}>
                         {r.requestedDays} {r.requestedDays === 1 ? "day" : "days"}
                       </span>
                     </td>
-                    <td>
-                      <div style={{ fontSize: "12px", color: "var(--text-muted)", maxWidth: "240px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    <td data-label="Reason">
+                      <div className="overflow-wrap" style={{ fontSize: "12px", color: "var(--text-muted)", maxWidth: "240px" }}>
                         {r.reason}
                       </div>
                     </td>
-                    <td>
+                    <td data-label="Action">
                       <button
                         onClick={() => setSelectedRequest(r)}
                         className="btn btn-primary btn-sm"

@@ -26,6 +26,7 @@ export const App: React.FC = () => {
 
   const [currentPage, setCurrentPage] = useState<string>("overview");
   const [isApplyModalOpen, setIsApplyModalOpen] = useState<boolean>(false);
+  const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
 
   // Data states
   const [balances, setBalances] = useState<LeaveBalance[]>([]);
@@ -92,6 +93,18 @@ export const App: React.FC = () => {
       loadData();
     }
   }, [user?.id, token]);
+
+  useEffect(() => {
+    document.body.classList.toggle("nav-open", sidebarOpen);
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setSidebarOpen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.classList.remove("nav-open");
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [sidebarOpen]);
 
   if (authLoading) {
     return (
@@ -173,9 +186,11 @@ export const App: React.FC = () => {
   const handleNavigate = (page: string) => {
     if (page === "apply") {
       setIsApplyModalOpen(true);
+      setSidebarOpen(false);
       return;
     }
     setCurrentPage(page);
+    setSidebarOpen(false);
   };
 
   return (
@@ -185,12 +200,15 @@ export const App: React.FC = () => {
         currentPage={currentPage}
         onNavigate={handleNavigate}
         pendingApprovalsCount={pendingApprovalsCount}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
       />
 
       {/* Main Area */}
       <div className="main-content">
         <Navbar
           pageTitle={getPageTitle()}
+          onToggleSidebar={() => setSidebarOpen(true)}
         />
 
         <main className="page-wrapper">

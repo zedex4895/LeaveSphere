@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { api } from "../services/api";
 import { X, Upload, CheckCircle2, AlertCircle, FileText, Sparkles } from "lucide-react";
+import { useEscape } from "../hooks/useEscape";
 
 interface HolidayImportModalProps {
   isOpen: boolean;
@@ -17,6 +18,7 @@ export const HolidayImportModal: React.FC<HolidayImportModalProps> = ({
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [successInfo, setSuccessInfo] = useState<{ imported: number; skipped: number } | null>(null);
+  useEscape(isOpen, onClose);
 
   if (!isOpen) return null;
 

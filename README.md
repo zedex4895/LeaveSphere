@@ -53,7 +53,7 @@
 - **Zero Calculation Errors:** Automatically compute business-day durations while strictly excluding weekends and company-published public holidays.
 - **Strict Anti-Overlap Enforcement:** Reject conflicting leave applications to avoid double-booking and quota corruption.
 - **Data Privacy & Notification Isolation:** Ensure employee approval and rejection notifications are delivered strictly and exclusively to the applying employee, preventing organization-wide leaks.
-- **Resilient Multi-Mode Architecture:** Function seamlessly with cloud MongoDB Atlas while maintaining a self-healing in-memory fallback database for 100% offline development reliability.
+- **Resilient Multi-Mode Architecture:** Use MongoDB Atlas in production and a development-only in-memory fallback for offline local development.
 - **Enterprise Aesthetics:** Deliver a high-contrast white-and-blue theme with full dark-mode support, micro-animations, and responsive layouts across desktop, tablet, and mobile devices.
 
 ---
@@ -409,7 +409,7 @@ npm run dev
 - **Frontend Client:** [http://localhost:5173](http://localhost:5173)
 - **Backend API Server:** [http://localhost:4000/api/v1](http://localhost:4000/api/v1)
 
-### 12.4 Pre-Seeded Demo Credentials
+### 12.4 Local Demo Credentials
 
 | Role | Full Name | Email | Password |
 | :--- | :--- | :--- | :--- |
@@ -417,6 +417,8 @@ npm run dev
 | **Employee 1** | Asha Rao (Product) | `employee@example.com` | `employee123` |
 | **Employee 2** | Rahul Sharma (Engineering) | `rahul.sharma@example.com` | `password123` |
 | **Employee 3** | Sneha Patel (Design) | `sneha.patel@example.com` | `password123` |
+
+These credentials are for local development only. Demo records are not seeded automatically in production. If these accounts already exist in a production database, disable or rotate them before using the application with real employee data.
 
 ---
 
@@ -433,15 +435,18 @@ PORT=4000
 MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.example.mongodb.net/leavesphere?retryWrites=true&w=majority
 
 # Security & Authentication
-JWT_ACCESS_SECRET=your_long_random_jwt_secret_key_leaveflow_2026
+JWT_ACCESS_SECRET=<generate-a-long-random-secret>
 JWT_ACCESS_TTL=7d
 
 # Frontend API Configuration (client/.env)
-VITE_API_BASE_URL=/api/v1
+VITE_API_BASE_URL=https://leave-sphere.vercel.app/api/v1
+
+# Backend CORS (server environment)
+CLIENT_ORIGIN=https://leavesphere-five.vercel.app
 ```
 
 > [!IMPORTANT]
-> The application includes a self-healing in-memory database engine. If `MONGODB_URI` is omitted or temporarily unreachable during local development, LeaveSphere automatically activates its built-in engine, allowing testing to proceed without local database setup.
+> The in-memory store is for local development only. Production startup requires `MONGODB_URI` and `JWT_ACCESS_SECRET`; it fails rather than switching to temporary storage if either secure service is unavailable.
 
 ---
 
@@ -604,7 +609,7 @@ The complete test suite (`server/src/scripts/verify-all-conditions.js`) was exec
 | **TC-23** | Admin Dashboard Analytics | GET `/admin/dashboard` | Accurate count of pending requests & on-leave | Pending count: 5, On Leave Today: 1 | **PASS** |
 | **TC-24** | Employee Self-Service Cancellation | PATCH `/leave/requests/:id/cancel` on pending request | Request status `CANCELLED`, reserved days released | Successfully cancelled and released quota | **PASS** |
 | **TC-25** | Public Self-Registration | Direct public sign-up endpoint | N/A (Organizational policy requires pre-provisioned accounts) | Public sign-up intentionally disabled for enterprise compliance | **NOT TESTED** |
-| **TC-26** | Vercel Live Deployment API Connect | POST `/api/v1/auth/login` on `leavesphere-five.vercel.app` | Successful authentication against live cloud endpoint | Blocked pending Vercel Environment Variables setup (`MONGODB_URI`, `JWT_ACCESS_SECRET`) | **NOT TESTED** |
+| **TC-26** | Vercel Live API & Authentication | GET `/health`, then authenticate and request `/auth/me` | Healthy API, connected database, authenticated profile | Health, login, and authenticated profile returned HTTP 200; rotate production JWT secret before deploying hardened auth | **PARTIAL** |
 
 > [!TIP]
 > You can re-run all automated conditions at any time with:
@@ -630,16 +635,20 @@ The application is structured for cloud hosting using a decoupled serverless mod
 - **Database:** MongoDB Atlas managed replica-set cluster with TLS encryption.
 
 ### 17.2 Deployment Steps to Vercel
+The frontend and API use separate Vercel deployments. Configure environment variables in the matching project:
+
+- **Frontend project:** Set `VITE_API_BASE_URL` to `https://leave-sphere.vercel.app/api/v1`.
+- **Backend project:** Set `MONGODB_URI`, `JWT_ACCESS_SECRET`, `JWT_ACCESS_TTL`, and `CLIENT_ORIGIN` (the frontend origin).
+
+Set a new cryptographically random `JWT_ACCESS_SECRET` on the backend before deploying the production auth changes. Rotating this key invalidates existing sessions, so users will need to sign in again.
+
+After configuring the projects:
 1. Push repository changes to GitHub:
    ```bash
    git push origin main
    ```
-2. Log into the [Vercel Dashboard](https://vercel.com/dashboard) and navigate to **LeaveSphere**.
-3. Go to **Settings → Environment Variables** and add:
-   - `MONGODB_URI`
-   - `JWT_ACCESS_SECRET`
-   - `JWT_ACCESS_TTL`
-4. Under the **Deployments** tab, click **Redeploy** on the latest commit.
+2. Log into the [Vercel Dashboard](https://vercel.com/dashboard) and open each existing project.
+3. Confirm its environment variables and build settings, then redeploy each project from the intended branch.
 
 ---
 
@@ -647,8 +656,8 @@ The application is structured for cloud hosting using a decoupled serverless mod
 
 - **Live URL:** [https://leavesphere-five.vercel.app/](https://leavesphere-five.vercel.app/)
 - **Repository:** [https://github.com/zedex4895/LeaveSphere.git](https://github.com/zedex4895/LeaveSphere.git)
-- **Current Status:** **Frontend Active**
-- **Verification Details:** The React application interface renders over HTTPS with responsive layouts, assets, and branding. Cloud database transactions will activate once database environment variables are configured in the Vercel project settings.
+- **Current Status:** **Frontend and API Active**
+- **Verification Details:** The frontend returned HTTP 200; API health reported HTTP 200 with MongoDB connected; login and authenticated profile checks returned HTTP 200. Configure a new production `JWT_ACCESS_SECRET` before deploying the production auth hardening.
 
 ---
 

@@ -71,14 +71,7 @@ export const EmployeeOverview: React.FC<EmployeeOverviewProps> = ({
       </div>
 
       {/* KPI Cards Grid */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))",
-          gap: "20px",
-          marginBottom: "28px"
-        }}
-      >
+      <div className="kpi-grid">
         <StatCard
           title="Annual leave available"
           value={annualBal ? annualBal.available : 12}
@@ -114,14 +107,7 @@ export const EmployeeOverview: React.FC<EmployeeOverviewProps> = ({
       </div>
 
       {/* Main Content 2-Column Grid */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "2fr 1fr",
-          gap: "24px",
-          alignItems: "start"
-        }}
-      >
+      <div className="content-split">
         {/* Left Column: Recent Leave Requests */}
         <div className="card" style={{ padding: "24px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "18px" }}>

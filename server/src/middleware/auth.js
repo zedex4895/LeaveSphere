@@ -1,7 +1,6 @@
 import jwt from "jsonwebtoken";
 import { dataService } from "../services/dataService.js";
-
-const JWT_SECRET = process.env.JWT_ACCESS_SECRET || "leaveflow_jwt_secret_secure_key_2026_9876543210";
+import { getJwtSecret } from "../config/jwt.js";
 
 export async function authenticate(req, res, next) {
   try {
@@ -19,7 +18,7 @@ export async function authenticate(req, res, next) {
     const token = authHeader.split(" ")[1];
     let decoded;
     try {
-      decoded = jwt.verify(token, JWT_SECRET);
+      decoded = jwt.verify(token, getJwtSecret());
     } catch (err) {
       return res.status(401).json({
         error: {

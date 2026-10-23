@@ -57,7 +57,7 @@ export const AdminAllRequests: React.FC<AdminAllRequestsProps> = ({
         }}
       >
         {/* Search Input */}
-        <div style={{ position: "relative", minWidth: "260px" }}>
+        <div className="search-field">
           <input
             type="text"
             className="input"

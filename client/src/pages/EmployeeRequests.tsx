@@ -118,7 +118,7 @@ export const EmployeeRequests: React.FC<EmployeeRequestsProps> = ({
           </div>
         ) : (
           <div className="table-container" style={{ border: "none" }}>
-            <table>
+            <table className="table-stack">
               <thead>
                 <tr>
                   <th>Leave Type</th>
@@ -133,29 +133,29 @@ export const EmployeeRequests: React.FC<EmployeeRequestsProps> = ({
               <tbody>
                 {filteredRequests.map(r => (
                   <tr key={r.id}>
-                    <td>
+                    <td data-label="Leave Type">
                       <div>
                         <strong style={{ color: "var(--text-main)" }}>{r.leaveType}</strong>
                         <div style={{ fontSize: "11px", color: "var(--text-light)" }}>ID: {r.id.slice(-6)}</div>
                       </div>
                     </td>
-                    <td style={{ fontSize: "13px", whiteSpace: "nowrap" }}>
+                    <td data-label="Dates" style={{ fontSize: "13px" }}>
                       {r.startDate} to {r.endDate}
                     </td>
-                    <td>
+                    <td data-label="Duration">
                       <span style={{ fontWeight: "600", color: "var(--primary)" }}>
                         {r.requestedDays} {r.requestedDays === 1 ? "day" : "days"}
                       </span>
                     </td>
-                    <td style={{ fontSize: "12px", color: "var(--text-light)" }}>
+                    <td data-label="Submitted" style={{ fontSize: "12px", color: "var(--text-light)" }}>
                       {r.createdAt ? new Date(r.createdAt).toLocaleDateString() : "Recent"}
                     </td>
-                    <td>
+                    <td data-label="Status">
                       <StatusBadge status={r.status} />
                     </td>
-                    <td>
+                    <td data-label="Decision">
                       {r.decisionNote ? (
-                        <div style={{ fontSize: "12px", color: "var(--text-main)", maxWidth: "220px" }}>
+                        <div className="overflow-wrap" style={{ fontSize: "12px", color: "var(--text-main)", maxWidth: "220px" }}>
                           "{r.decisionNote}"
                         </div>
                       ) : (
@@ -164,7 +164,7 @@ export const EmployeeRequests: React.FC<EmployeeRequestsProps> = ({
                         </span>
                       )}
                     </td>
-                    <td>
+                    <td data-label="Actions">
                       <div style={{ display: "flex", gap: "6px" }}>
                         <button
                           onClick={() => setSelectedRequest(r)}
@@ -266,7 +266,7 @@ export const EmployeeRequests: React.FC<EmployeeRequestsProps> = ({
               )}
             </div>
 
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "24px" }}>
+            <div className="modal-actions" style={{ marginTop: "24px" }}>
               {selectedRequest.status === "PENDING" && (
                 <button
                   onClick={() => {
@@ -313,7 +313,7 @@ export const EmployeeRequests: React.FC<EmployeeRequestsProps> = ({
               </p>
             </div>
 
-            <div style={{ display: "flex", justifyContent: "center", gap: "12px" }}>
+            <div className="modal-actions" style={{ justifyContent: "center" }}>
               <button onClick={() => setCancellingId(null)} className="btn btn-secondary" disabled={cancelLoading}>
                 Keep Request
               </button>

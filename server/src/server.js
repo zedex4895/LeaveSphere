@@ -10,6 +10,7 @@ import express from "express";
 import cors from "cors";
 import morgan from "morgan";
 import { ensureConnected, isMongoConnected } from "./config/db.js";
+import { assertJwtSecretConfigured } from "./config/jwt.js";
 import { corsOptions } from "./config/cors.js";
 import { seedInitialData } from "./services/dataService.js";
 import apiRoutes from "./routes/index.js";
@@ -25,6 +26,7 @@ export async function initApp() {
   if (isInitialized) return;
   if (!initPromise) {
     initPromise = (async () => {
+      assertJwtSecretConfigured();
       await ensureConnected();
       if (!isMongoConnected() && (process.env.VERCEL || process.env.NODE_ENV === "production")) {
         throw new Error("MongoDB is not connected in production.");

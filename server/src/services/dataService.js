@@ -8,8 +8,9 @@ import CompanyHoliday from "../models/CompanyHoliday.js";
 import AuditLog from "../models/AuditLog.js";
 import Notification from "../models/Notification.js";
 
-// True when running on Vercel or NODE_ENV=production
-const isProduction = !!(process.env.VERCEL || process.env.NODE_ENV === "production");
+function isProductionRuntime() {
+  return !!(process.env.VERCEL || process.env.NODE_ENV === "production");
+}
 
 /**
  * Throw a 503 Service Unavailable error when production code would fall back
@@ -18,7 +19,7 @@ const isProduction = !!(process.env.VERCEL || process.env.NODE_ENV === "producti
  * serverless invocation.
  */
 function requireMongo(operationName) {
-  if (isProduction && !isMongoConnected()) {
+  if (isProductionRuntime() && !isMongoConnected()) {
     const err = new Error(
       `[DB] MongoDB is not connected. Cannot perform '${operationName}' in production. ` +
       "Ensure MONGODB_URI is set correctly in Vercel environment variables."
@@ -41,6 +42,11 @@ const memoryStore = {
 
 // Seed initial dataset
 export async function seedInitialData() {
+  if (isProductionRuntime()) {
+    console.info("[Seed] Demo data seeding is disabled in production.");
+    return;
+  }
+
   const adminPasswordHash = await bcrypt.hash("admin123", 10);
   const employeePasswordHash = await bcrypt.hash("employee123", 10);
   const generalPasswordHash = await bcrypt.hash("password123", 10);
@@ -501,7 +507,7 @@ export async function seedInitialData() {
       console.log("[Seed] MongoDB Atlas database successfully initialized with demo records.");
     } catch (err) {
       console.error("[Seed] Error synchronizing seed to MongoDB:", err.message);
-      if (isProduction) {
+      if (isProductionRuntime()) {
         throw err;
       }
     }
@@ -981,10 +987,10 @@ export const dataService = {
         return await Notification.create(entry);
       } catch (err) {
         console.error("Create notification MongoDB error:", err.message);
-        if (isProduction) throw err;
+        if (isProductionRuntime()) throw err;
       }
     }
-    if (isProduction) {
+    if (isProductionRuntime()) {
       requireMongo("createNotification");
     }
     memoryStore.notifications.unshift(entry);

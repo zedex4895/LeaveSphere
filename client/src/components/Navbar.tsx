@@ -84,11 +84,16 @@ export const Navbar: React.FC<NavbarProps> = ({ pageTitle, onToggleSidebar }) =>
         setIsDropdownOpen(false);
       }
     }
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") setIsDropdownOpen(false);
+    }
     if (isDropdownOpen) {
       document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("keydown", handleEscape);
     }
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
     };
   }, [isDropdownOpen]);
 
@@ -238,40 +243,24 @@ export const Navbar: React.FC<NavbarProps> = ({ pageTitle, onToggleSidebar }) =>
   };
 
   return (
-    <header
-      style={{
-        height: "72px",
-        borderBottom: "1px solid var(--border)",
-        backgroundColor: "var(--surface)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: "0 32px",
-        position: "sticky",
-        top: 0,
-        zIndex: 50,
-        transition: "background-color 0.25s ease, border-color 0.25s ease"
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+    <header className="app-navbar">
+      <div style={{ display: "flex", alignItems: "center", gap: "12px", minWidth: 0 }}>
         {onToggleSidebar && (
           <button
+            type="button"
             onClick={onToggleSidebar}
-            aria-label="Toggle navigation menu"
-            className="btn btn-secondary"
-            style={{ padding: "8px", display: "none" }}
+            aria-label="Open navigation menu"
+            className="btn btn-secondary nav-menu-btn"
             id="mobileMenuBtn"
           >
             <Menu size={18} />
           </button>
         )}
-        <div>
-          <div style={{ fontSize: "12px", color: "var(--text-light)", fontWeight: "500" }}>
+        <div className="navbar-title">
+          <div className="navbar-crumb">
             LeaveSphere &nbsp;›&nbsp; <span style={{ color: "var(--text-muted)" }}>{pageTitle}</span>
           </div>
-          <h1 style={{ fontSize: "20px", fontWeight: "700", color: "var(--text-main)", letterSpacing: "-0.01em" }}>
-            {pageTitle}
-          </h1>
+          <h1>{pageTitle}</h1>
         </div>
       </div>
 
@@ -578,7 +567,7 @@ export const Navbar: React.FC<NavbarProps> = ({ pageTitle, onToggleSidebar }) =>
             >
               {user.name.charAt(0)}
             </div>
-            <div style={{ display: "flex", flexDirection: "column", lineHeight: "1.2" }}>
+            <div className="user-meta">
               <span style={{ fontSize: "13px", fontWeight: "600", color: "var(--text-main)" }}>
                 {user.name}
               </span>

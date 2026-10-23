@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { api, ApiError } from "../services/api";
 import { LeaveBalance, CompanyHoliday } from "../types";
 import { X, Calendar, AlertCircle, CheckCircle, Info } from "lucide-react";
+import { useEscape } from "../hooks/useEscape";
 
 interface ApplyLeaveModalProps {
   isOpen: boolean;
@@ -35,6 +36,7 @@ export const ApplyLeaveModal: React.FC<ApplyLeaveModalProps> = ({
   const [calculatedDays, setCalculatedDays] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  useEscape(isOpen, onClose);
 
   // Selected balance helper
   const selectedBalance = balances.find(b => b.leaveType === leaveType);

@@ -27,46 +27,34 @@ export const Login: React.FC = () => {
 
   return (
     <div
+      className="login-page"
       style={{
-        minHeight: "100vh",
-        width: "100%",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
         backgroundColor: theme === "dark" ? "#0A0D14" : "#D6CECB",
         backgroundImage: theme === "dark"
           ? "radial-gradient(circle at 50% 50%, #151C2C 0%, #0A0D14 100%)"
           : "radial-gradient(circle at 50% 50%, #EFEBE9 0%, #D7CFCB 100%)",
-        padding: "32px 20px",
         fontFamily: "'Inter', sans-serif"
       }}
     >
       {/* Central Split Container */}
       <div
+        className="login-shell"
         style={{
-          width: "100%",
-          maxWidth: "1160px",
-          minHeight: "720px",
           backgroundColor: theme === "dark" ? "#121826" : "#FFFFFF",
-          borderRadius: "44px",
-          overflow: "hidden",
           boxShadow: theme === "dark"
             ? "0 30px 70px -15px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.08)"
             : "0 35px 80px -20px rgba(70, 50, 40, 0.28), 0 0 0 1px rgba(0, 0, 0, 0.04)",
-          display: "flex",
-          flexWrap: "wrap",
           position: "relative"
         }}
       >
         {/*LEFT SIDE (DARK HERO WITH PHONE)  */}
         <div
+          className="login-hero"
           style={{
-            flex: "1 1 520px",
             backgroundColor: "#1A1513",
             background: "linear-gradient(180deg, #1C1715 0%, #14100E 100%)",
             color: "#FFFFFF",
             padding: "48px 48px 36px",
-            display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
             position: "relative",
@@ -201,13 +189,9 @@ export const Login: React.FC = () => {
 
         {/* ================= RIGHT SIDE (CLEAN SIGN IN) ================= */}
         <div
+          className="login-panel"
           style={{
-            flex: "1 1 520px",
             backgroundColor: theme === "dark" ? "#121826" : "#FFFFFF",
-            padding: "48px 56px 36px",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "space-between",
             transition: "background-color 0.25s ease"
           }}
         >
@@ -302,8 +286,11 @@ export const Login: React.FC = () => {
             <form onSubmit={handleSubmit}>
               {/* Email / Username field */}
               <div style={{ marginBottom: "16px" }}>
+                <label className="sr-only" htmlFor="login-email">Email or Username</label>
                 <input
+                  id="login-email"
                   type="text"
+                  autoComplete="username"
                   placeholder="Email or Username"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
@@ -334,8 +321,11 @@ export const Login: React.FC = () => {
 
               {/* Password field */}
               <div style={{ marginBottom: "14px", position: "relative" }}>
+                <label className="sr-only" htmlFor="login-password">Password</label>
                 <input
+                  id="login-password"
                   type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
                   placeholder="Password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
@@ -375,7 +365,9 @@ export const Login: React.FC = () => {
                     border: "none",
                     color: "#9CA3AF",
                     cursor: "pointer",
-                    padding: "4px"
+                    padding: "10px",
+                    minWidth: "44px",
+                    minHeight: "44px"
                   }}
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}

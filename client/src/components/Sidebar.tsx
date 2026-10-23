@@ -17,6 +17,8 @@ interface SidebarProps {
   currentPage: string;
   onNavigate: (page: string) => void;
   pendingApprovalsCount?: number;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
 interface NavItem {
@@ -29,7 +31,9 @@ interface NavItem {
 export const Sidebar: React.FC<SidebarProps> = ({
   currentPage,
   onNavigate,
-  pendingApprovalsCount = 0
+  pendingApprovalsCount = 0,
+  isOpen = false,
+  onClose
 }) => {
   const { user } = useAuth();
   const isAdmin = user?.role === "ADMIN";
@@ -58,21 +62,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const navItems = isAdmin ? adminNavItems : employeeNavItems;
 
+  const handleNavigate = (page: string) => {
+    onNavigate(page);
+    onClose?.();
+  };
+
   return (
+    <>
+      {isOpen && (
+        <button
+          type="button"
+          className="sidebar-backdrop"
+          aria-label="Close navigation menu"
+          onClick={onClose}
+        />
+      )}
     <aside
-      style={{
-        width: "260px",
-        backgroundColor: "var(--sidebar-bg)",
-        borderRight: "1px solid var(--sidebar-border)",
-        display: "flex",
-        flexDirection: "column",
-        flexShrink: 0,
-        height: "100vh",
-        position: "sticky",
-        top: 0,
-        zIndex: 60,
-        transition: "background-color 0.25s ease, border-color 0.25s ease"
-      }}
+      className={`app-sidebar${isOpen ? " is-open" : ""}`}
+      aria-label="Main navigation"
     >
       {/* Brand Header */}
       <div
@@ -110,11 +117,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
           return (
             <button
               key={item.id}
-              onClick={() => onNavigate(item.id)}
+              type="button"
+              onClick={() => handleNavigate(item.id)}
               style={{
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
+                minHeight: "44px",
                 padding: "10px 14px",
                 borderRadius: "10px",
                 border: "none",
@@ -179,5 +188,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <span style={{ fontSize: "11px", color: "var(--badge-approved-color)", fontWeight: "600" }}>● Online</span>
       </div>
     </aside>
+    </>
   );
 };
