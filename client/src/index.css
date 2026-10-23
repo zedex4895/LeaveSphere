@@ -435,6 +435,47 @@ tr:hover td {
   animation: scaleUp 0.18s ease-out;
 }
 
+.apply-leave-modal {
+  padding: 30px;
+}
+
+.apply-leave-date-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+}
+
+.apply-leave-balance,
+.apply-leave-duration {
+  align-items: center;
+}
+
+.admin-review-modal {
+  max-width: 600px;
+  padding: 30px;
+}
+
+.admin-review-request-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  font-size: 13px;
+}
+
+.admin-review-dates {
+  grid-column: span 2;
+}
+
+.admin-review-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.admin-review-note {
+  overflow-wrap: anywhere;
+}
+
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -596,6 +637,28 @@ tr:hover td {
   overflow-wrap: anywhere;
 }
 
+.notification-panel {
+  max-height: min(500px, calc(100dvh - 88px));
+}
+
+.notification-list {
+  max-height: min(380px, calc(100dvh - 190px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.notification-item {
+  min-width: 0;
+}
+
+.notification-item-heading {
+  min-width: 0;
+}
+
+.notification-item-title {
+  min-width: 0;
+}
+
 .navbar-crumb {
   font-size: 12px;
   color: var(--text-light);
@@ -715,6 +778,11 @@ tr:hover td {
     grid-template-columns: 1fr;
   }
 
+  .leave-balance-meta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
   .modal-overlay {
     padding: 12px;
     align-items: flex-end;
@@ -725,6 +793,45 @@ tr:hover td {
     border-radius: 20px 20px 12px 12px;
     width: 100%;
     max-width: none;
+  }
+
+  .apply-leave-modal {
+    padding: 22px 18px calc(18px + env(safe-area-inset-bottom));
+  }
+
+  .admin-request-filters {
+    align-items: stretch !important;
+  }
+
+  .admin-request-status-filters {
+    width: 100%;
+  }
+
+  .admin-request-type-filter,
+  .admin-request-type-filter .select {
+    width: 100% !important;
+  }
+
+  .admin-review-modal {
+    padding: 22px 18px calc(18px + env(safe-area-inset-bottom));
+  }
+
+  .admin-review-request-details {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .admin-review-dates {
+    grid-column: auto;
+  }
+
+  .admin-review-actions {
+    flex-direction: column-reverse;
+  }
+
+  .admin-review-actions .btn {
+    width: 100%;
+    min-height: 44px;
   }
 
   .modal-actions {
@@ -788,6 +895,99 @@ tr:hover td {
   .table-stack td > * {
     min-width: 0;
     text-align: right;
+  }
+
+  .admin-review-table td[data-label="Reviewer / Note"] > div {
+    max-width: 62%;
+  }
+
+  .admin-review-table td[data-label="Action"] .btn {
+    min-width: 92px;
+  }
+
+  .admin-review-employee {
+    align-items: flex-start !important;
+  }
+
+  .admin-review-employee-details {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .admin-review-header {
+    gap: 12px;
+  }
+
+  .admin-review-header > div {
+    min-width: 0;
+  }
+
+  .admin-review-header h2 {
+    font-size: 18px !important;
+  }
+}
+
+@media (max-width: 560px) {
+  .notification-panel {
+    position: fixed !important;
+    top: calc(env(safe-area-inset-top) + 68px) !important;
+    right: 12px !important;
+    left: 12px;
+    width: auto !important;
+    max-width: none !important;
+    max-height: calc(100dvh - env(safe-area-inset-top) - 80px);
+    border-radius: 14px !important;
+  }
+
+  .notification-panel-header {
+    gap: 8px;
+    padding: 12px 14px !important;
+  }
+
+  .notification-list {
+    max-height: calc(100dvh - env(safe-area-inset-top) - 156px);
+  }
+
+  .notification-item {
+    gap: 10px !important;
+    padding: 12px !important;
+  }
+
+  .notification-item-heading {
+    flex-wrap: wrap;
+    align-items: flex-start !important;
+    gap: 2px 8px !important;
+  }
+
+  .notification-item-title {
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+  }
+
+  .apply-leave-date-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .apply-leave-date-label {
+    flex-wrap: wrap;
+    gap: 4px 8px;
+  }
+
+  .apply-leave-balance {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .apply-leave-balance > span {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .apply-leave-duration {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
   }
 }
 

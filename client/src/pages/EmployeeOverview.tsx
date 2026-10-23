@@ -135,7 +135,7 @@ export const EmployeeOverview: React.FC<EmployeeOverviewProps> = ({
             </div>
           ) : (
             <div className="table-container">
-              <table>
+              <table className="table-stack">
                 <thead>
                   <tr>
                     <th>Leave Type</th>
@@ -147,18 +147,18 @@ export const EmployeeOverview: React.FC<EmployeeOverviewProps> = ({
                 <tbody>
                   {recentRequests.map(r => (
                     <tr key={r.id}>
-                      <td>
+                      <td data-label="Leave Type">
                         <strong style={{ color: "var(--text-main)" }}>{r.leaveType}</strong>
                       </td>
-                      <td style={{ fontSize: "13px", whiteSpace: "nowrap" }}>
+                      <td data-label="Dates" style={{ fontSize: "13px" }}>
                         {r.startDate} to {r.endDate}
                       </td>
-                      <td>
+                      <td data-label="Duration">
                         <span style={{ fontWeight: "600", color: "var(--primary)" }}>
                           {r.requestedDays} {r.requestedDays === 1 ? "day" : "days"}
                         </span>
                       </td>
-                      <td>
+                      <td data-label="Status">
                         <StatusBadge status={r.status} />
                       </td>
                     </tr>
@@ -207,7 +207,7 @@ export const EmployeeOverview: React.FC<EmployeeOverviewProps> = ({
               </button>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            <div className="leave-balance-list" style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
               {balances.filter(b => b.leaveType !== "UNPAID").map(b => {
                 const pct = b.entitlement > 0 ? Math.round((b.available / b.entitlement) * 100) : 0;
                 const getBarColor = () => {
@@ -217,8 +217,8 @@ export const EmployeeOverview: React.FC<EmployeeOverviewProps> = ({
                 };
 
                 return (
-                  <div key={b.leaveType}>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", marginBottom: "6px" }}>
+                  <div key={b.leaveType} className="leave-balance-item">
+                    <div className="leave-balance-meta" style={{ display: "flex", justifyContent: "space-between", gap: "12px", fontSize: "13px", marginBottom: "6px", flexWrap: "wrap" }}>
                       <span style={{ fontWeight: "500", color: "var(--text-muted)" }}>{b.leaveType} leave</span>
                       <span style={{ fontWeight: "600", color: "var(--text-main)" }}>
                         {b.available} / {b.entitlement} days

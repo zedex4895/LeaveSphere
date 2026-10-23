@@ -45,9 +45,9 @@ export const ReviewLeaveModal: React.FC<ReviewLeaveModalProps> = ({
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={e => e.stopPropagation()} style={{ padding: "30px", maxWidth: "600px" }}>
+      <div className="modal-content admin-review-modal" onClick={e => e.stopPropagation()}>
         {/* Header */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
+        <div className="admin-review-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
           <div>
             <h2 style={{ fontSize: "20px", fontWeight: "700", color: "var(--text-main)" }}>
               Review leave request
@@ -59,7 +59,8 @@ export const ReviewLeaveModal: React.FC<ReviewLeaveModalProps> = ({
           <button
             onClick={onClose}
             className="btn btn-secondary"
-            style={{ width: "36px", height: "36px", padding: 0, borderRadius: "50%" }}
+            aria-label="Close leave request review"
+            style={{ width: "40px", height: "40px", padding: 0, borderRadius: "50%", flexShrink: 0 }}
           >
             <X size={18} />
           </button>
@@ -95,7 +96,7 @@ export const ReviewLeaveModal: React.FC<ReviewLeaveModalProps> = ({
             marginBottom: "20px"
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "14px" }}>
+          <div className="admin-review-employee" style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "14px" }}>
             <div
               style={{
                 width: "40px",
@@ -112,7 +113,7 @@ export const ReviewLeaveModal: React.FC<ReviewLeaveModalProps> = ({
             >
               {request.employee?.name ? request.employee.name.charAt(0) : "E"}
             </div>
-            <div>
+            <div className="admin-review-employee-details">
               <div style={{ fontSize: "15px", fontWeight: "600", color: "var(--text-main)" }}>
                 {request.employee?.name || "Employee"}
               </div>
@@ -122,7 +123,7 @@ export const ReviewLeaveModal: React.FC<ReviewLeaveModalProps> = ({
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", fontSize: "13px" }}>
+          <div className="admin-review-request-details">
             <div>
               <span style={{ color: "var(--text-light)" }}>Leave Category:</span>{" "}
               <strong style={{ color: "var(--text-main)" }}>{request.leaveType} Leave</strong>
@@ -131,7 +132,7 @@ export const ReviewLeaveModal: React.FC<ReviewLeaveModalProps> = ({
               <span style={{ color: "var(--text-light)" }}>Duration:</span>{" "}
               <strong style={{ color: "var(--primary)" }}>{request.requestedDays} working days</strong>
             </div>
-            <div style={{ gridColumn: "span 2" }}>
+            <div className="admin-review-dates">
               <span style={{ color: "var(--text-light)" }}>Dates:</span>{" "}
               <strong style={{ color: "var(--text-main)" }}>
                 {request.startDate} &nbsp;to&nbsp; {request.endDate}
@@ -147,6 +148,7 @@ export const ReviewLeaveModal: React.FC<ReviewLeaveModalProps> = ({
               Reason for request
             </span>
             <div
+              className="admin-review-note"
               style={{
                 backgroundColor: "var(--surface)",
                 border: "1px solid var(--border)",
@@ -167,6 +169,7 @@ export const ReviewLeaveModal: React.FC<ReviewLeaveModalProps> = ({
                 Handover & Coverage Notes
               </span>
               <div
+                className="admin-review-note"
                 style={{
                   backgroundColor: "var(--surface)",
                   border: "1px solid var(--border)",
@@ -198,7 +201,7 @@ export const ReviewLeaveModal: React.FC<ReviewLeaveModalProps> = ({
         </div>
 
         {/* Action Buttons */}
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px" }}>
+        <div className="admin-review-actions">
           <button
             type="button"
             onClick={onClose}

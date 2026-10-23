@@ -141,8 +141,8 @@ export const ApplyLeaveModal: React.FC<ApplyLeaveModalProps> = ({
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={e => e.stopPropagation()} style={{ padding: "30px" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
+      <div className="modal-content apply-leave-modal" onClick={e => e.stopPropagation()}>
+        <div className="apply-leave-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
           <div>
             <h2 style={{ fontSize: "20px", fontWeight: "700", color: "var(--text-main)" }}>
               Apply for leave
@@ -154,7 +154,8 @@ export const ApplyLeaveModal: React.FC<ApplyLeaveModalProps> = ({
           <button
             onClick={onClose}
             className="btn btn-secondary"
-            style={{ width: "36px", height: "36px", padding: 0, borderRadius: "50%" }}
+            aria-label="Close leave request form"
+            style={{ width: "40px", height: "40px", padding: 0, borderRadius: "50%", flexShrink: 0 }}
           >
             <X size={18} />
           </button>
@@ -194,7 +195,7 @@ export const ApplyLeaveModal: React.FC<ApplyLeaveModalProps> = ({
               <option value="PERSONAL">Personal Leave</option>
               <option value="UNPAID">Unpaid Leave</option>
             </select>
-            <div style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "6px", fontSize: "12px", color: "var(--text-muted)" }}>
+            <div className="apply-leave-balance" style={{ display: "flex", gap: "6px", marginTop: "6px", fontSize: "12px", color: "var(--text-muted)" }}>
               <Info size={14} color="var(--primary)" />
               <span>
                 Available balance: <strong>{availableDays} days</strong>
@@ -206,9 +207,9 @@ export const ApplyLeaveModal: React.FC<ApplyLeaveModalProps> = ({
           </div>
 
           {/* Date range grid */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+          <div className="apply-leave-date-grid">
             <div className="form-group">
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
+              <div className="apply-leave-date-label" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
                 <label className="label" style={{ margin: 0 }}>Start Date</label>
                 <span style={{ fontSize: "11px", color: "var(--primary)", fontWeight: "500" }}>From today onward</span>
               </div>
@@ -225,7 +226,7 @@ export const ApplyLeaveModal: React.FC<ApplyLeaveModalProps> = ({
               </div>
             </div>
             <div className="form-group">
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
+              <div className="apply-leave-date-label" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
                 <label className="label" style={{ margin: 0 }}>End Date</label>
                 <span style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: "500" }}>≥ Start Date</span>
               </div>
@@ -246,6 +247,7 @@ export const ApplyLeaveModal: React.FC<ApplyLeaveModalProps> = ({
           {/* Duration Banner */}
           {startDate && endDate && (
             <div
+              className="apply-leave-duration"
               style={{
                 backgroundColor: "var(--surface-subtle)",
                 border: "1px solid var(--border)",
@@ -254,7 +256,6 @@ export const ApplyLeaveModal: React.FC<ApplyLeaveModalProps> = ({
                 fontSize: "13px",
                 color: "var(--text-main)",
                 display: "flex",
-                alignItems: "center",
                 justifyContent: "space-between",
                 marginBottom: "18px"
               }}
@@ -295,7 +296,7 @@ export const ApplyLeaveModal: React.FC<ApplyLeaveModalProps> = ({
           </div>
 
           {/* Actions */}
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "24px" }}>
+          <div className="modal-actions" style={{ display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "24px" }}>
             <button type="button" onClick={onClose} className="btn btn-secondary" disabled={loading}>
               Cancel
             </button>

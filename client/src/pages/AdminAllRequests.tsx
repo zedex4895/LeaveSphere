@@ -45,7 +45,7 @@ export const AdminAllRequests: React.FC<AdminAllRequestsProps> = ({
 
       {/* Filter and Search Bar */}
       <div
-        className="card"
+        className="card admin-request-filters"
         style={{
           padding: "16px 20px",
           marginBottom: "20px",
@@ -74,7 +74,7 @@ export const AdminAllRequests: React.FC<AdminAllRequestsProps> = ({
         </div>
 
         {/* Status Chips */}
-        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+        <div className="admin-request-status-filters" style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
           {["ALL", "PENDING", "APPROVED", "REJECTED", "CANCELLED"].map(s => (
             <button
               key={s}
@@ -88,7 +88,7 @@ export const AdminAllRequests: React.FC<AdminAllRequestsProps> = ({
         </div>
 
         {/* Type Select */}
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <div className="admin-request-type-filter" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <span style={{ fontSize: "13px", color: "var(--text-muted)" }}>Type:</span>
           <select
             className="select"
@@ -119,7 +119,7 @@ export const AdminAllRequests: React.FC<AdminAllRequestsProps> = ({
           </div>
         ) : (
           <div className="table-container" style={{ border: "none" }}>
-            <table>
+            <table className="table-stack admin-review-table">
               <thead>
                 <tr>
                   <th>Employee</th>
@@ -134,7 +134,7 @@ export const AdminAllRequests: React.FC<AdminAllRequestsProps> = ({
               <tbody>
                 {filtered.map(r => (
                   <tr key={r.id}>
-                    <td>
+                    <td data-label="Employee">
                       <div>
                         <strong style={{ color: "var(--text-main)" }}>{r.employee?.name || "Employee"}</strong>
                         <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>
@@ -142,23 +142,23 @@ export const AdminAllRequests: React.FC<AdminAllRequestsProps> = ({
                         </div>
                       </div>
                     </td>
-                    <td>
+                    <td data-label="Leave Type">
                       <span style={{ fontSize: "13px", fontWeight: "600", color: "var(--text-main)" }}>
                         {r.leaveType}
                       </span>
                     </td>
-                    <td style={{ fontSize: "13px", whiteSpace: "nowrap" }}>
+                    <td data-label="Dates" style={{ fontSize: "13px" }}>
                       {r.startDate} to {r.endDate}
                     </td>
-                    <td>
+                    <td data-label="Duration">
                       <span style={{ fontWeight: "700", color: "var(--primary)" }}>
                         {r.requestedDays} {r.requestedDays === 1 ? "day" : "days"}
                       </span>
                     </td>
-                    <td>
+                    <td data-label="Status">
                       <StatusBadge status={r.status} />
                     </td>
-                    <td>
+                    <td data-label="Reviewer / Note">
                       {r.decisionNote ? (
                         <div style={{ fontSize: "12px", color: "var(--text-main)", maxWidth: "220px" }}>
                           "{r.decisionNote}"
@@ -172,7 +172,7 @@ export const AdminAllRequests: React.FC<AdminAllRequestsProps> = ({
                         </span>
                       )}
                     </td>
-                    <td>
+                    <td data-label="Action">
                       {r.status === "PENDING" ? (
                         <button
                           onClick={() => setSelectedRequest(r)}

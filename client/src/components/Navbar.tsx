@@ -287,7 +287,7 @@ export const Navbar: React.FC<NavbarProps> = ({ pageTitle, onToggleSidebar }) =>
         </button>
 
         {/* Notifications Popover Bell */}
-        <div style={{ position: "relative" }} ref={dropdownRef}>
+        <div className="notification-anchor" style={{ position: "relative" }} ref={dropdownRef}>
           <button
             onClick={handleToggleDropdown}
             className="btn btn-secondary"
@@ -301,6 +301,8 @@ export const Navbar: React.FC<NavbarProps> = ({ pageTitle, onToggleSidebar }) =>
             }}
             title={unreadCount > 0 ? `${unreadCount} unread notification(s)` : "Notifications"}
             aria-label="Notifications"
+            aria-expanded={isDropdownOpen}
+            aria-haspopup="dialog"
           >
             <Bell size={18} />
             {unreadCount > 0 && (
@@ -332,6 +334,9 @@ export const Navbar: React.FC<NavbarProps> = ({ pageTitle, onToggleSidebar }) =>
           {/* Dropdown Menu */}
           {isDropdownOpen && (
             <div
+              className="notification-panel"
+              role="dialog"
+              aria-label="Notifications"
               style={{
                 position: "absolute",
                 top: "calc(100% + 10px)",
@@ -349,6 +354,7 @@ export const Navbar: React.FC<NavbarProps> = ({ pageTitle, onToggleSidebar }) =>
             >
               {/* Header */}
               <div
+                className="notification-panel-header"
                 style={{
                   padding: "16px 20px",
                   borderBottom: "1px solid var(--border)",
@@ -403,6 +409,7 @@ export const Navbar: React.FC<NavbarProps> = ({ pageTitle, onToggleSidebar }) =>
 
               {/* Notification Items List */}
               <div
+                className="notification-list"
                 style={{
                   maxHeight: "380px",
                   overflowY: "auto"
@@ -447,6 +454,7 @@ export const Navbar: React.FC<NavbarProps> = ({ pageTitle, onToggleSidebar }) =>
                   notifications.map(item => (
                     <div
                       key={item.id}
+                      className="notification-item"
                       onClick={() => !item.isRead && handleMarkAsRead(item.id)}
                       style={{
                         padding: "14px 18px",
@@ -472,6 +480,7 @@ export const Navbar: React.FC<NavbarProps> = ({ pageTitle, onToggleSidebar }) =>
                       {getNotificationIcon(item.type)}
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div
+                          className="notification-item-heading"
                           style={{
                             display: "flex",
                             alignItems: "center",
@@ -481,6 +490,7 @@ export const Navbar: React.FC<NavbarProps> = ({ pageTitle, onToggleSidebar }) =>
                           }}
                         >
                           <span
+                            className="notification-item-title"
                             style={{
                               fontSize: "13px",
                               fontWeight: item.isRead ? "600" : "700",
@@ -493,6 +503,7 @@ export const Navbar: React.FC<NavbarProps> = ({ pageTitle, onToggleSidebar }) =>
                             {item.title}
                           </span>
                           <span
+                            className="notification-item-time"
                             style={{
                               fontSize: "11px",
                               color: "var(--text-light)",
